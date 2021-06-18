@@ -10,6 +10,10 @@ path = './images'
 files = os.listdir(path)
 images = []
 
+latitude = 62.304588
+latitude_ref = 'N'
+longitude = 34.579684 
+longitude_ref = 'E'
 
 log.info('Listing files')
 for f in files:
@@ -22,6 +26,12 @@ for f in files:
             log.info(f"Longitude: {image.gps_longitude} {image.gps_longitude_ref}")
         except:
             log.error(f'Image {f} does not have gps exif data')
+    # image.gps_latitude = latitude
+    # image.gps_latitude_ref = latitude_ref
+    # image.gps_longitude = longitude
+    # image.gps_longitude_ref = longitude_ref
+    # with open(f'{path}/{f}', 'wb') as updated_file:
+    #     updated_file.write(image.get_file())
     images.append(image)
     # log.info(f'File {f} has read')
 

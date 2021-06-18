@@ -50,7 +50,7 @@ class User(base, Model):
     tg_id = Column(Integer, unique=True, nullable=False)
     tg_username = Column(String)
     cords_id = Column(ForeignKey('cords.id'))
-    sent_photos = Column(Integer, nullable=False, default=0)
+    # sent_photos = Column(Integer, nullable=False, default=0)
     created = Column(DateTime, nullable=False, default=datetime.utcnow)
     
     cords = relationship('Cords')
