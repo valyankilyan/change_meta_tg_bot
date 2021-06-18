@@ -64,6 +64,25 @@ class User(base, Model):
     def __repr__(self):
         return f'<User username={self.tg_username}, created={self.created}>'
     
+    def setCords(self, latitude, longitude):
+        latitude_ref = 'N' if latitude >= 0 else 'S'
+        longitude_ref = 'E' if longitude >= 0 else 'W'
+        cords = Cords(
+            abs(latitude),
+            abs(longitude),
+            latitude_ref,
+            longitude_ref
+        ).commit()
+        self.cords = cords
+        self.commit()
+    
+def getUser(id):
+    return session.query(User).get(id)
+
+def getUserByTg(tg_id):
+    return session.query(User).filter_by(tg_id=tg_id).first()
+    
+    
 class Cords(base, Model):
     __tablename__ = 'cords'
     id = Column(Integer, primary_key=True, autoincrement=True)
