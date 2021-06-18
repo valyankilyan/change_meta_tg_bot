@@ -1,11 +1,9 @@
 import logging 
 import logging.config
 
-def getLogger(name):
-    logging.config.fileConfig('.conf/logging.conf')
-    logger = logging.getLogger(name)
-    return logger
-    
+logging.config.fileConfig('.conf/logging.conf')
+log = logging.getLogger(__name__)
+log.info('Logging started')
 
-# for l in logging.root.manager.loggerDict:
-#     logging.getLogger(l).disabled = False
+def getLogger(name):
+    return logging.getLogger(name)

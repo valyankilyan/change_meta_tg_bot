@@ -104,3 +104,8 @@ class Cords(base, Model):
     def __repr__(self):
         return f'<Cords latitude={self.latitude} {self.latitude_ref}, \
 longitude={self.longitude} {self.longitude_ref}, created={self.created}>'
+
+    def getTelegramTypeCords(self):
+        latitude = -self.latitude if self.latitude_ref == 'S' else self.latitude
+        longitude = -self.longitude if self.longitude_ref == 'W' else self.longitude
+        return latitude, longitude

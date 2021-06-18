@@ -1,8 +1,9 @@
-from exif import Image
-import os
-# import logging
 from loggingconfig import getLogger
 log = getLogger(__name__)
+
+from exif import Image
+import os
+
 
 path = './images'
 
