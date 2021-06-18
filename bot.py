@@ -2,7 +2,7 @@ from loggingconfig import getLogger
 log = getLogger(__name__)
 
 from exif import Image
-from config import bot_token
+from config import bot_token, images_path, ALLOWED_EXTENSIONS
 from models import User, getUserByTg
 import telebot
 bot = telebot.TeleBot(bot_token, parse_mode=None)
@@ -42,12 +42,28 @@ def sendCurrentCords(message):
 @bot.message_handler(content_types=['photo'])
 def photoHandler(message):
     log.debug(message)
-    bot.send_message(message.chat.id, 'фото получено')
+    path = downloadPhoto(message.photo[2].file_id, 'photo')
+    cords = getUserByTg(message.from_user.id).cords
+    # changeExif(path, cords)
 
 @bot.message_handler(content_types=['document'])
 def documentHandler(message):
     log.debug(message)
-    bot.send_message(message.chat.id, 'документ получаен')
+    if message.document.file_name.split('.')[-1] in ALLOWED_EXTENSIONS:
+        path = downloadPhoto(message.document.file_id, 'document', message.document.file_name)   
+    else:
+        bot.send_message(message.chat.id, 'Вы кажется, не фотографию отправили')
+    
+def downloadPhoto(file_id, type, file_name=None):
+    if type == 'photo':
+        path = f'{images_path}/{file_id}.jpg'
+    if type == 'document':
+        path = f'{images_path}/{file_name}'
+    file_info = bot.get_file(file_id)
+    downloaded_file = bot.download_file(file_info.file_path)
+    with open(path, 'wb') as new_file:
+        new_file.write(downloaded_file)
+    return path
 
 
 @bot.message_handler(func=lambda message: True)
