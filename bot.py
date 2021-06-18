@@ -1,3 +1,4 @@
+from exif import Image
 from loggingconfig import getLogger
 log = getLogger(__name__)
 from config import bot_token
@@ -19,6 +20,6 @@ def echo_all(message):
 @bot.message_handler(content_types=['location'])
 def handle_location(message):
     log.info(f'data = {message.location.latitude}, {message.location.longitude}')
-    bot.send_message(message.chat.id, f'{message.location.latitude}, {message.location.longitude}')
+    bot.send_message(message.chat.id, f'{message.location.latitude}, {message.location.longitude}')    
 
 bot.polling()
