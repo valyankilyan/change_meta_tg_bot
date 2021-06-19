@@ -30,7 +30,7 @@ def index():
 
 # Process webhook calls
 @app.route(WEBHOOK_URL_PATH, methods=['POST'])
-def webhook():
+def webhook_route():
     if flask.request.headers.get('content-type') == 'application/json':
         json_string = flask.request.get_data().decode('utf-8')
         update = telebot.types.Update.de_json(json_string)
