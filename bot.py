@@ -5,7 +5,7 @@ import flask
 import telebot
 import time
 from config import bot_token, images_path, ALLOWED_EXTENSIONS, webhook
-from models import User, getUserByTg, getAllUsers
+from models import User, getUserByTg, getAllUsers, getUser
 from changer import changeGPS, deletePhoto
 
 WEBHOOK_HOST = webhook.host
@@ -47,6 +47,11 @@ def sendWelcome(message):
             message.from_user.username,
             message.chat.id
         ).commit()
+        try:
+            admin = getUser(1)
+            bot.send_message(admin.chat_id, f'newUser {message.from_user.id}')
+        except:
+            log.info(f'I suppose u did not register')
     bot.reply_to(message, "Привет, я помогу тебе изменить gps данные фотографии. \
 Для начала тебе нужно скинуть мне необходимые координаты.")
 
