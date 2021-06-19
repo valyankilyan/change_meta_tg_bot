@@ -107,14 +107,14 @@ def downloadPhoto(file_id, type, file_name=None):
 
 @bot.message_handler(commands=['sendUserData'])
 def sendUserData(message):
-    if getUserByTg(message.from_user).id != 1:
+    if getUserByTg(message.from_user.id).id != 1:
         errorHandler(message)
     else:
         users = getAllUsers()
         out = ''
         for u in users:
-            out+= f'{u.tg_username} - {u.sent_photos}\n'
-        bot.send_message(out)
+            out+= f'@{u.tg_username} - {u.sent_photos}\n'
+        bot.send_message(message.chat.id, out)
 
 @bot.message_handler(func=lambda message: True)
 def errorHandler(message):
