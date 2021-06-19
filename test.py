@@ -21,10 +21,18 @@ for f in files:
         image = Image(file)
         log.info('----------------------')
         log.info(f'file {f} has read')
-        try:
-            log.info(f"Latitude: {image.gps_latitude} {image.gps_latitude_ref}")
-            log.info(f"Longitude: {image.gps_longitude} {image.gps_longitude_ref}")
-        except:
+        if image._has_exif:
+            try:
+                log.info(f'{dir(image)}')
+                status = f"contains EXIF (version {image.exif_version}) information."
+                log.info(status)
+                log.info(f'exif_version format = {type(image.exif_version)}')
+                log.info(f"Latitude: {image.gps_latitude} {image.gps_latitude_ref}")
+                log.info(f"Longitude: {image.gps_longitude} {image.gps_longitude_ref}")
+                log.info(f'image has {len(image.get_all())} exif points')
+            except:
+                log.info(f'Image does not provide gps exif data')
+        else:
             log.error(f'Image {f} does not have gps exif data')
     # image.gps_latitude = latitude
     # image.gps_latitude_ref = latitude_ref

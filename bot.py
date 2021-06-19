@@ -1,11 +1,11 @@
 from loggingconfig import getLogger
 log = getLogger(__name__)
 
-from exif import Image
 from config import bot_token, images_path, ALLOWED_EXTENSIONS
 from models import User, getUserByTg
 import telebot
 bot = telebot.TeleBot(bot_token, parse_mode=None)
+from changer import changeGPS, deletePhoto
 
 @bot.message_handler(commands=['start', 'help'])
 def sendWelcome(message):
@@ -41,13 +41,11 @@ def sendCurrentCords(message):
     
 @bot.message_handler(content_types=['photo'])
 def photoHandler(message):
-    log.debug(message)
     path = downloadPhoto(message.photo[2].file_id, 'photo')
     sendChangedPhoto(message, path)
 
 @bot.message_handler(content_types=['document'])
-def documentHandler(message):
-    log.debug(message)
+def documentHandler(message):    
     if message.document.file_name.split('.')[-1] in ALLOWED_EXTENSIONS:
         path = downloadPhoto(message.document.file_id, 'document', message.document.file_name)        
         sendChangedPhoto(message, path)
@@ -55,10 +53,14 @@ def documentHandler(message):
         bot.send_message(message.chat.id, 'Вы кажется, не фотографию отправили')
         
 def sendChangedPhoto(message, path):
-    cords = getUserByTg(message.from_user.id).cords
-    changeExif(path, cords)
+    user = getUserByTg(message.from_user.id)
+    cords = user.cords
+    changeGPS(path, cords)
     with open(path, 'rb') as photo:
-        bot.send_document(message.chat.id, photo)
+        bot.send_document(message.chat.id, photo)    
+    deletePhoto(path)
+    user.sent_photos+= 1
+    user.commit()
     
 def downloadPhoto(file_id, type, file_name=None):
     if type == 'photo':
@@ -70,23 +72,6 @@ def downloadPhoto(file_id, type, file_name=None):
     with open(path, 'wb') as new_file:
         new_file.write(downloaded_file)
     return path
-
-def changeExif(path, cords):
-    with open(path, 'rb') as file:
-        image = Image(file)
-        log.debug('----------------------')
-        log.debug(f'file {path} has read')
-        try:
-            log.debug(f"Latitude: {image.gps_latitude} {image.gps_latitude_ref}")
-            log.debug(f"Longitude: {image.gps_longitude} {image.gps_longitude_ref}")
-        except:
-            log.debug(f'Image {path} does not have gps exif data')
-    image.gps_latitude = cords.latitude
-    image.gps_latitude_ref = cords.latitude_ref
-    image.gps_longitude = cords.longitude
-    image.gps_longitude_ref = cords.longitude_ref
-    with open(f'{path}', 'wb') as updated_file:
-        updated_file.write(image.get_file())
 
 @bot.message_handler(func=lambda message: True)
 def errorHandler(message):

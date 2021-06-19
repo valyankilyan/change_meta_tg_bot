@@ -50,7 +50,7 @@ class User(base, Model):
     tg_id = Column(Integer, unique=True, nullable=False)
     tg_username = Column(String)
     cords_id = Column(ForeignKey('cords.id'))
-    # sent_photos = Column(Integer, nullable=False, default=0)
+    sent_photos = Column(Integer, default=0)
     created = Column(DateTime, nullable=False, default=datetime.utcnow)
     
     cords = relationship('Cords')
@@ -63,7 +63,7 @@ class User(base, Model):
         log.debug(f'Initializated {self.__repr__()}')
         
     def __repr__(self):
-        return f'<User username={self.tg_username}, created={self.created}>'
+        return f'<User username={self.tg_username}, sent={self.sent_photos}, created={self.created}>'
     
     def setCords(self, latitude, longitude):
         latitude_ref = 'N' if latitude >= 0 else 'S'
