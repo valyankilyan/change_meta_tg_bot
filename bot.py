@@ -1,11 +1,43 @@
 from loggingconfig import getLogger
 log = getLogger(__name__)
 
-from config import bot_token, images_path, ALLOWED_EXTENSIONS
-from models import User, getUserByTg
+import flask
 import telebot
-bot = telebot.TeleBot(bot_token, parse_mode=None)
+import time
+from config import bot_token, images_path, ALLOWED_EXTENSIONS, webhook
+from models import User, getUserByTg, getAllUsers
 from changer import changeGPS, deletePhoto
+
+WEBHOOK_HOST = webhook.host
+WEBHOOK_PORT = webhook.port  # 443, 80, 88 or 8443 (port need to be 'open')
+WEBHOOK_LISTEN = webhook.listen  # In some VPS you may need to put here the IP addr
+
+WEBHOOK_SSL_CERT = webhook.cert  # Path to the ssl certificate
+WEBHOOK_SSL_PRIV = webhook.priv  # Path to the ssl private key
+
+WEBHOOK_URL_BASE = f'https://{WEBHOOK_HOST}'
+WEBHOOK_URL_PATH = f'/api/web-hook/'
+
+bot = telebot.TeleBot(bot_token)
+bot.remove_webhook()
+time.sleep(0.1)
+log.debug('remove_webhook')
+app = flask.Flask(__name__)
+
+@app.route('/', methods=['GET', 'HEAD'])
+def index():
+    return ''
+
+# Process webhook calls
+@app.route(WEBHOOK_URL_PATH, methods=['POST'])
+def webhook():
+    if flask.request.headers.get('content-type') == 'application/json':
+        json_string = flask.request.get_data().decode('utf-8')
+        update = telebot.types.Update.de_json(json_string)
+        bot.process_new_updates([update])
+        return ''
+    else:
+        flask.abort(403)
 
 @bot.message_handler(commands=['start', 'help'])
 def sendWelcome(message):
@@ -73,8 +105,28 @@ def downloadPhoto(file_id, type, file_name=None):
         new_file.write(downloaded_file)
     return path
 
+@bot.message_handler(commands=['sendUserData'])
+def sendUserData(message):
+    if getUserByTg(message.from_user).id != 1:
+        errorHandler(message)
+    else:
+        users = getAllUsers()
+        out = ''
+        for u in users:
+            out+= f'{u.tg_username} - {u.sent_photos}\n'
+        bot.send_message(out)
+
 @bot.message_handler(func=lambda message: True)
 def errorHandler(message):
     bot.reply_to(message, "Извини, кажется, я не расчитан на такое.")
 
-bot.polling()
+if webhook.use_webhook:
+    bot.set_webhook(url=WEBHOOK_URL_BASE + WEBHOOK_URL_PATH)
+    app.run(host=WEBHOOK_LISTEN,
+            port=WEBHOOK_PORT,
+            debug=True)
+    log.info("Bot Worker webhook works")
+else:
+    bot.polling(none_stop=True)
+
+log.info("Bot worker started")

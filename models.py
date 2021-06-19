@@ -82,6 +82,9 @@ def getUser(id):
 
 def getUserByTg(tg_id):
     return session.query(User).filter_by(tg_id=tg_id).first()
+
+def getAllUsers():
+    return session.query(User).all()
     
     
 class Cords(base, Model):
