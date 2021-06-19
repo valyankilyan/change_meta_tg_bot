@@ -78,16 +78,22 @@ def sendCurrentCords(message):
     
 @bot.message_handler(content_types=['photo'])
 def photoHandler(message):
-    path = downloadPhoto(message.photo[2].file_id, 'photo')
-    sendChangedPhoto(message, path)
-
-@bot.message_handler(content_types=['document'])
-def documentHandler(message):    
-    if message.document.file_name.split('.')[-1] in ALLOWED_EXTENSIONS:
-        path = downloadPhoto(message.document.file_id, 'document', message.document.file_name)        
+    if getUserByTg(message.from_user.id).cords:
+        path = downloadPhoto(message.photo[2].file_id, 'photo')
         sendChangedPhoto(message, path)
     else:
-        bot.send_message(message.chat.id, 'Вы кажется, не фотографию отправили')
+        bot.send_message(message.chat.id, "Вам нужно сначала скинуть кординаты.")
+
+@bot.message_handler(content_types=['document'])
+def documentHandler(message):
+    if getUserByTg(message.from_user.id).cords:
+        if message.document.file_name.split('.')[-1] in ALLOWED_EXTENSIONS:
+            path = downloadPhoto(message.document.file_id, 'document', message.document.file_name)        
+            sendChangedPhoto(message, path)
+        else:
+            bot.send_message(message.chat.id, 'Вы кажется, не фотографию отправили')
+    else:
+        bot.send_message(message.chat.id, "Вам нужно сначала скинуть кординаты.")
         
 def sendChangedPhoto(message, path):
     user = getUserByTg(message.from_user.id)
