@@ -49,7 +49,7 @@ def sendWelcome(message):
         ).commit()
         try:
             admin = getUser(1)
-            bot.send_message(admin.chat_id, f'newUser {message.from_user.id}')
+            bot.send_message(admin.chat_id, f'newUser {message.from_user.username}')
         except:
             log.info(f'I suppose u did not register')
     bot.reply_to(message, "Привет, я помогу тебе изменить gps данные фотографии. \
