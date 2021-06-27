@@ -16,6 +16,6 @@ webhook = Config('webhook')
 webhook.use_webhook = os.environ.get('USE_WEBHOOK') == 'True'
 webhook.host = os.environ.get('WEBHOOK_URL')
 webhook.port = os.environ.get('WEBHOOK_PORT')
-webhook.listen = '0.0.0.0'
+webhook.listen = '127.0.0.1'
 webhook.cert = os.environ.get('WEBHOOK_CERT')
 webhook.priv = os.environ.get('WEBHOOK_PRIV')
