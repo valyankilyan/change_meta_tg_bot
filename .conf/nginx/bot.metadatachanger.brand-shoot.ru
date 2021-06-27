@@ -25,7 +25,7 @@ server {
 
     location / {
         # переадресация запросов приложений на сервер gunicorn
-        proxy_pass http://localhost:9003;
+        proxy_pass http://127.0.0.1:9003;
         proxy_redirect off;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;

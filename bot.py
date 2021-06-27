@@ -18,6 +18,16 @@ WEBHOOK_SSL_PRIV = webhook.priv  # Path to the ssl private key
 WEBHOOK_URL_BASE = f'https://{WEBHOOK_HOST}'
 WEBHOOK_URL_PATH = f'/api/web-hook/'
 
+log.debug(f'WEBHOOK_HOST = {WEBHOOK_HOST}')
+log.debug(f'WEBHOOK_PORT = {WEBHOOK_PORT}')
+log.debug(f'WEBHOOK_LISTEN = {WEBHOOK_LISTEN}')
+log.debug(f'WEBHOOK_SSL_CERT = {WEBHOOK_SSL_CERT}')
+log.debug(f'WEBHOOK_SSL_PRIV = {WEBHOOK_SSL_PRIV}')
+log.debug(f'WEBHOOK_URL_BASE = {WEBHOOK_URL_BASE}')
+log.debug(f'WEBHOOK_URL_PATH = {WEBHOOK_URL_PATH}')
+
+
+
 bot = telebot.TeleBot(bot_token)
 bot.remove_webhook()
 time.sleep(0.1)
@@ -138,9 +148,11 @@ def sendUserData(message):
 def errorHandler(message):
     bot.reply_to(message, "Извини, кажется, я не расчитан на такое.")
 
+log.debug(f'WEBHOOK HOST = {WEBHOOK_LISTEN}')
+
 if webhook.use_webhook:
     bot.set_webhook(url=WEBHOOK_URL_BASE + WEBHOOK_URL_PATH)
-    app.run(host=WEBHOOK_LISTEN,
+    app.run(host='127.0.0.1',
             port=WEBHOOK_PORT,
             debug=False)
     log.info("Bot Worker webhook works")
