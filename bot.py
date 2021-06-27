@@ -4,7 +4,7 @@ log = getLogger(__name__)
 import flask
 import telebot
 import time
-from config import bot_token, images_path, ALLOWED_EXTENSIONS, webhook
+from config import OTHER_IMAGE_EXTENSIONS, bot_token, images_path, ALLOWED_EXTENSIONS, OTHER_IMAGE_EXTENSIONS, webhook
 from models import User, getUserByTg, getAllUsers, getUser
 from changer import changeGPS, deletePhoto
 
@@ -91,7 +91,10 @@ def documentHandler(message):
             path = downloadPhoto(message.document.file_id, 'document', message.document.file_name)        
             sendChangedPhoto(message, path)
         else:
-            bot.send_message(message.chat.id, 'Вы кажется, не фотографию отправили')
+            if message.document.file_name.split('.')[-1] in OTHER_IMAGE_EXTENSIONS:
+                bot.send_message(message.chat.id, 'Следует посылать фотографии с расширением jpeg, но если надо, мы это исправим.')
+            else:
+                bot.send_message(message.chat.id, 'Вы кажется, не фотографию отправили')
     else:
         bot.send_message(message.chat.id, "Вам нужно сначала скинуть кординаты.")
         
@@ -135,7 +138,7 @@ if webhook.use_webhook:
     bot.set_webhook(url=WEBHOOK_URL_BASE + WEBHOOK_URL_PATH)
     app.run(host=WEBHOOK_LISTEN,
             port=WEBHOOK_PORT,
-            debug=True)
+            debug=False)
     log.info("Bot Worker webhook works")
 else:
     bot.polling(none_stop=True)
