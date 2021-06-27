@@ -17,6 +17,7 @@ log.debug("Creating metadata.")
 metadata = base.metadata
 log.debug("Creating session.")
 session = scoped_session(sessionmaker(bind=engine))
+log.debug("Session created")
 
 
 class Model(): 
