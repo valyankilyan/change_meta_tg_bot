@@ -39,6 +39,10 @@ def webhook_route():
     else:
         flask.abort(403)
 
+@app.route('/test')
+def test_page():
+    return 'it works well'
+
 @bot.message_handler(commands=['start', 'help'])
 def sendWelcome(message):
     if getUserByTg(message.from_user.id) == None:
