@@ -68,7 +68,7 @@ def locationHandler(message):
     user.setCords(message.location.latitude, message.location.longitude)
     bot.send_message(message.chat.id, f'Кординаты обновлены: {message.location.latitude}, {message.location.longitude}')
 
-@bot.message_handler(commands=['getCurrentCords'])
+@bot.message_handler(commands=['getcurrentcords'])
 def sendCurrentCords(message):
     user = getUserByTg(message.from_user.id)
     cords = user.cords
