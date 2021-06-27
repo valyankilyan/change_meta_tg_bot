@@ -57,7 +57,9 @@ def sendWelcome(message):
         except:
             log.info(f'I suppose u did not register')
     bot.reply_to(message, "Привет, я помогу тебе изменить gps данные фотографии. \
-Для начала тебе нужно скинуть мне необходимые координаты.")
+Для начала тебе нужно скинуть мне необходимые координаты с помощью соответствующей опции \
+в разделе прикрепленния вложений, а потом просто скинуть мне нужную фотографию \
+(скидывайте фотографии как файл, чтобы не потерять в качестве изображения).")
 
 @bot.message_handler(content_types=['location'])
 def locationHandler(message):
@@ -125,7 +127,7 @@ def downloadPhoto(file_id, type, file_name=None):
 
 @bot.message_handler(commands=['sendUserData'])
 def sendUserData(message):
-    if getUserByTg(message.from_user.id).id != 1:
+    if getUserByTg(message.from_user.id).id not in [1, 2]:
         errorHandler(message)
     else:
         users = getAllUsers()
