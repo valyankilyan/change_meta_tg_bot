@@ -56,9 +56,9 @@ def sendWelcome(message):
             bot.send_message(admin.chat_id, f'newUser {message.from_user.username}')
         except:
             log.info(f'I suppose u did not register')
-    bot.reply_to(message, "Привет, я помогу тебе изменить gps данные фотографии. \n\
+    bot.reply_to(message, "Привет, я помогу тебе изменить gps данные фотографии. \n\n\
 Тебе нужно скинуть мне необходимые координаты с помощью соответствующей опции \
-в разделе прикрепленния вложений и просто скинуть мне нужную фотографию. \n\
+в разделе прикрепленния вложений и просто скинуть мне нужную фотографию. \n\n\
 (скидывайте фотографии как файл, чтобы не потерять в качестве изображения)")
 
 @bot.message_handler(content_types=['location'])
