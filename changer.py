@@ -4,9 +4,6 @@ log = getLogger(__name__)
 import os
 from PIL import Image
 import piexif 
-from config import src_image_path
-
-src_photo = Image.open(src_image_path)
 
 def properCords(cord):
     ans = len(str(cord).split('.')[1])

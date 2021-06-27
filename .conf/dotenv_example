@@ -1,6 +1,5 @@
 BOT_TOKEN=
 IMAGES_PATH='./images'
-SRC_IMAGE_PATH='exif_src.JPG'
 
 USE_WEBHOOK=False
 WEBHOOK_URL=
