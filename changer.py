@@ -2,8 +2,15 @@ from loggingconfig import getLogger
 log = getLogger(__name__)
 
 import os
-from PIL import Image
+import PIL
+# from PIL import Image
 import piexif 
+
+def getImageQuality(original_img):    
+    quantization = getattr(original_img, 'quantization', None)
+    subsampling = PIL.JpegImagePlugin.get_sampling(original_img)
+    quality = 95 if quantization is None else -1
+    return quality, quantization, subsampling
 
 def properCords(cord):
     ans = len(str(cord).split('.')[1])
@@ -42,12 +49,15 @@ def makeExif(image, cords):
 
 def changeGPS(path, cords):
     # открываем фотку
-    image = Image.open(path)
+    image = PIL.Image.open(path)
+    
+    quality, quantization, subsampling = getImageQuality(image)
     
     exif_bytes = makeExif(image, cords)
 
     # заливаем эксиф в фотку
-    image.save(path, "jpeg", exif=exif_bytes, quality=100)
+    image.save(path, "jpeg", exif=exif_bytes, quality=quality,
+               subsampling=subsampling, qtables=quantization)
 
 def deletePhoto(path):
     os.remove(path)
