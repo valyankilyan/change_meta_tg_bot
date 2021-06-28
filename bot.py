@@ -128,7 +128,7 @@ def sendChangedPhoto(message, path, fmt=None):
     if fmt != None:
         log.debug("I suppose, format isn't jpeg, okay, let's change format")
         path = changeFormat(path, fmt)
-    changeGPS(path, cords)
+    changeGPS(path, cords, fmt)
     with open(path, 'rb') as photo:
         bot.send_document(message.chat.id, photo)    
     deletePhoto(path)
