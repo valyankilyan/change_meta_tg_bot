@@ -5,8 +5,9 @@ load_dotenv()
 bot_token = os.environ.get('BOT_TOKEN')
 images_path = os.environ.get('IMAGES_PATH')
 
-ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'JPG']
-OTHER_IMAGE_EXTENSIONS = ['png', 'gif']
+BEST_EXTENSIONS = ['jpg', 'jpeg']
+OTHER_ALLOWED_EXTENSIONS = ['png']
+NOT_ALLOWED_IMAGE_EXTENSIONS = ['gif']
 
 class Config:
     def __init__(self, name: str):

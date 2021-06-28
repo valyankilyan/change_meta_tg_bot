@@ -4,7 +4,7 @@ log = getLogger(__name__)
 import flask
 import telebot
 import time
-from config import OTHER_IMAGE_EXTENSIONS, bot_token, images_path, ALLOWED_EXTENSIONS, OTHER_IMAGE_EXTENSIONS, webhook
+from config import NOT_ALLOWED_IMAGE_EXTENSIONS, bot_token, images_path, BEST_EXTENSIONS, OTHER_ALLOWED_EXTENSIONS, webhook
 from models import User, getUserByTg, getAllUsers, getUser
 from changer import changeGPS, deletePhoto
 
@@ -66,7 +66,7 @@ def locationHandler(message):
     log.info(f'data = {message.location.latitude}, {message.location.longitude}')
     user = getUserByTg(message.from_user.id)
     user.setCords(message.location.latitude, message.location.longitude)
-    bot.send_message(message.chat.id, f'Кординаты обновлены: {message.location.latitude}, {message.location.longitude}')
+    bot.send_message(message.chat.id, f'Кординаты обновлены, теперь все фотографии, которые вы мне послали, я отошлю вам с этими координатами.')
 
 @bot.message_handler(commands=['getcurrentcords'])
 def sendCurrentCords(message):
@@ -93,14 +93,16 @@ def photoHandler(message):
 @bot.message_handler(content_types=['document'])
 def documentHandler(message):
     if getUserByTg(message.from_user.id).cords:
-        if message.document.file_name.split('.')[-1] in ALLOWED_EXTENSIONS:
+        fmt = message.document.file_name.split('.')[-1].lower()
+        if fmt in BEST_EXTENSIONS:
             path = downloadPhoto(message.document.file_id, 'document', message.document.file_name)        
             sendChangedPhoto(message, path)
+        elif fmt in OTHER_ALLOWED_EXTENSIONS:
+            bot.send_message(message.chat.id, 'Следует посылать фотографии с расширением jpeg, но если надо, мы это исправим.')
+        elif fmt in NOT_ALLOWED_IMAGE_EXTENSIONS:
+            bot.send_message(message.chat.id, 'Эти форматы изображений мы, к сожалению не поддерживаем по техническим причинам.')
         else:
-            if message.document.file_name.split('.')[-1] in OTHER_IMAGE_EXTENSIONS:
-                bot.send_message(message.chat.id, 'Следует посылать фотографии с расширением jpeg, но если надо, мы это исправим.')
-            else:
-                bot.send_message(message.chat.id, 'Вы кажется, не фотографию отправили')
+            bot.send_message(message.chat.id, 'Либо это не фотография, либо я просто ещё не знаю такого формата.')
     else:
         bot.send_message(message.chat.id, "Вам нужно сначала скинуть кординаты.")
         
