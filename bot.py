@@ -8,6 +8,7 @@ from config import NOT_ALLOWED_IMAGE_EXTENSIONS, bot_token, images_path, BEST_EX
 from models import User, getUserByTg, getAllUsers, getUser
 from changer import changeGPS, changeFormat, getTrueFormat, replace_last,\
 replaceWithTrueFormat, deletePhoto
+import bot_answers
 
 WEBHOOK_HOST = webhook.host
 WEBHOOK_PORT = webhook.port  # 443, 80, 88 or 8443 (port need to be 'open')
@@ -53,21 +54,19 @@ def sendWelcome(message):
             message.chat.id
         ).commit()
         try:
-            admin = getUser(1)
-            bot.send_message(admin.chat_id, f'newUser {message.from_user.username}')
+            admin = [getUser(1), getUser(2)]
+            for a in admin:
+                bot.send_message(a.chat_id, f'newUser {message.from_user.username}')
         except:
             log.info(f'I suppose u did not register')
-    bot.send_message(message.chat.id, "Привет, я помогу тебе изменить gps данные фотографии. \n\n\
-Тебе нужно скинуть мне необходимые координаты с помощью соответствующей опции \
-в разделе прикрепленния вложений и просто скинуть мне нужную фотографию. \n\n\
-(скидывайте фотографии как файл, чтобы не потерять в качестве изображения)")
+    bot.send_message(message.chat.id, bot_answers.help)
 
 @bot.message_handler(content_types=['location'])
 def locationHandler(message):
     log.info(f'data = {message.location.latitude}, {message.location.longitude}')
     user = getUserByTg(message.from_user.id)
     user.setCords(message.location.latitude, message.location.longitude)
-    bot.send_message(message.chat.id, f'Кординаты обновлены, теперь все фотографии, которые вы мне послали, я отошлю вам с этими координатами.')
+    bot.send_message(message.chat.id, bot_answers.cords_was_updated)
 
 @bot.message_handler(commands=['getcurrentcords'])
 def sendCurrentCords(message):
@@ -76,8 +75,9 @@ def sendCurrentCords(message):
     if cords:
         latitude, longitude = cords.getTelegramTypeCords()
         bot.send_location(message.chat.id, latitude, longitude)
+        bot.send_message(message.chat.id, bot_answers.send_current_cords)
     else:
-        bot.send_message(message.chat.id, 'Вы ещё ни разу не отправляли мне местоположение.')
+        bot.send_message(message.chat.id, bot_answers.first_send_location)
     
 # @bot.message_handler(func=lambda message: True, content_types=['photo', 'document'])
 # def default_command(message):
@@ -90,7 +90,7 @@ def photoHandler(message):
         path = downloadPhoto(message.photo[2].file_id, 'photo')
         sendChangedPhoto(message, path)
     else:
-        bot.send_message(message.chat.id, "Вам нужно сначала скинуть кординаты.")
+        bot.send_message(message.chat.id, bot_answers.first_send_location)
 
 @bot.message_handler(content_types=['document'])
 def documentHandler(message):
@@ -110,16 +110,17 @@ def documentHandler(message):
             sendChangedPhoto(message, path)
         elif fmt in OTHER_ALLOWED_EXTENSIONS:
             log.debug('Image is not JPG, but ill try to deal with it')
-            bot.send_message(message.chat.id, 'Лучше посылать изображения в формате jpeg, но я и с этим умею работать.')            
+            bot.send_message(message.chat.id, bot_answers.handle_not_jpg_image)            
             sendChangedPhoto(message, path, fmt)            
         elif fmt in NOT_ALLOWED_IMAGE_EXTENSIONS:
             log.debug("I don't work with this type of images.")
-            bot.send_message(message.chat.id, 'Эти форматы изображений мы, к сожалению не поддерживаем по техническим причинам.')
+            bot.send_message(message.chat.id,
+                bot_answers.cant_handle_image.format(getAllAllowedExtensions()))
         else:
             deletePhoto(path)
-            bot.send_message(message.chat.id, 'Либо это не фотография, либо я просто ещё не знаю такого формата.')
+            bot.send_message(message.chat.id, bot_answers.its_not_an_image)
     else:
-        bot.send_message(message.chat.id, "Вам нужно сначала скинуть кординаты.")   
+        bot.send_message(message.chat.id, bot_answers.first_send_location)   
 
 def sendChangedPhoto(message, path, fmt=None):
     user = getUserByTg(message.from_user.id)
@@ -145,6 +146,14 @@ def downloadPhoto(file_id, type, file_name=None):
         new_file.write(downloaded_file)
     return path
 
+def getAllAllowedExtensions():
+    out = ''
+    for e in BEST_EXTENSIONS:
+        out+= e + ' '
+    for e in OTHER_ALLOWED_EXTENSIONS:
+        out+= e + ' '
+    return e
+
 @bot.message_handler(commands=['sendUserData'])
 def sendUserData(message):
     if getUserByTg(message.from_user.id).id not in [1, 2]:
@@ -155,6 +164,11 @@ def sendUserData(message):
         for u in users:
             out+= f'@{u.tg_username} - {u.sent_photos}\n'
         bot.send_message(message.chat.id, out)
+
+@bot.message_handler(content_types=['audio', 'sticker', 'video', 'video_note', 'voice',
+                                    'contact', 'pinned_message'])
+def iAmNotWorkingWithThat(message):
+    bot.send_message(message.chat.id, bot_answers.i_am_not_working_with_that)
 
 @bot.message_handler(func=lambda message: True)
 def errorHandler(message):
