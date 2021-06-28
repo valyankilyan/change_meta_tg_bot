@@ -5,6 +5,8 @@ import os
 import PIL
 # from PIL import Image
 import piexif 
+import pyheif
+import whatimage
 
 def getImageQuality(original_img):    
     quantization = getattr(original_img, 'quantization', None)
@@ -59,22 +61,43 @@ def changeGPS(path, cords):
     image.save(path, "jpeg", exif=exif_bytes, quality=quality,
                subsampling=subsampling, qtables=quantization)
 
-def changeFormat(path, fmt):
+def changeFormat(path, fmt):        
     log.debug('Format changing...')
-    new_path = ''
+    new_path = replace_last(path, f'.{fmt}' , '.jpg')
     if fmt == 'png':
-        new_path = replace_last(path, '.png', '.jpg')
         image = PIL.Image.open(path)
         log.debug(f"Saving photo in {new_path}")
         rgb_im = image.convert('RGB')
         rgb_im.save(new_path, quality=95)
+    if fmt in ['heic', 'heif', 'avif']:        
+        heif_file = pyheif.read(path)
+        image = PIL.Image.frombytes(
+            heif_file.mode, 
+            heif_file.size, 
+            heif_file.data,
+            "raw",
+            heif_file.mode,
+            heif_file.stride,
+        )
+        image.save(new_path, quality=95)
     log.debug('Image successfully saved in JPG format')
     deletePhoto(path)
     return new_path
 
+def getTrueFormat(path):
+    with open(path, 'rb') as f:
+        data = f.read()
+    true_fmt = whatimage.identify_image(data)
+    return true_fmt
+
 def replace_last(source_string, replace_what, replace_with):
     head, _sep, tail = source_string.rpartition(replace_what)
     return head + replace_with + tail     
+
+def replaceWithTrueFormat(path, fmt, true_fmt):
+    new_path = replace_last(path, f'.{fmt}', f'.{true_fmt}')
+    os.rename(path, new_path)
+    return new_path
 
 def deletePhoto(path):
     os.remove(path)

@@ -6,7 +6,8 @@ import telebot
 import time
 from config import NOT_ALLOWED_IMAGE_EXTENSIONS, bot_token, images_path, BEST_EXTENSIONS, OTHER_ALLOWED_EXTENSIONS, webhook
 from models import User, getUserByTg, getAllUsers, getUser
-from changer import changeGPS, changeFormat, replace_last, deletePhoto
+from changer import changeGPS, changeFormat, getTrueFormat, replace_last,\
+replaceWithTrueFormat, deletePhoto
 
 WEBHOOK_HOST = webhook.host
 WEBHOOK_PORT = webhook.port  # 443, 80, 88 or 8443 (port need to be 'open')
@@ -84,7 +85,7 @@ def sendCurrentCords(message):
     
 @bot.message_handler(content_types=['photo'])
 def photoHandler(message):
-    log.debug(f'user {message.from_user.username} sent us photo {message.photo[2].file_name}')
+    log.debug(f'user {message.from_user.username} sent us photo')
     if getUserByTg(message.from_user.id).cords:
         path = downloadPhoto(message.photo[2].file_id, 'photo')
         sendChangedPhoto(message, path)
@@ -94,22 +95,28 @@ def photoHandler(message):
 @bot.message_handler(content_types=['document'])
 def documentHandler(message):
     log.debug(f'user {message.from_user.username} sent us document {message.document.file_name}')
-    if getUserByTg(message.from_user.id).cords:        
+    if getUserByTg(message.from_user.id).cords:
         fmt = message.document.file_name.split('.')[-1]
         filename = replace_last(message.document.file_name, fmt, fmt.lower())
+        path = downloadPhoto(message.document.file_id, 'document', filename) 
+        true_fmt = getTrueFormat(path)
         fmt = fmt.lower()
-        if fmt in BEST_EXTENSIONS:
-            path = downloadPhoto(message.document.file_id, 'document', message.document.file_name) 
+        log.debug(f'Format is {fmt}, true format is {true_fmt}')
+        if true_fmt != fmt:
+            path = replaceWithTrueFormat(path, fmt, true_fmt)
+            fmt = true_fmt
+            
+        if fmt in BEST_EXTENSIONS:            
             sendChangedPhoto(message, path)
         elif fmt in OTHER_ALLOWED_EXTENSIONS:
             log.debug('Image is not JPG, but ill try to deal with it')
-            bot.send_message(message.chat.id, 'Лучше посылать изображения в формате jpeg, но я и с этим умею работать.')
-            path = downloadPhoto(message.document.file_id, 'document', message.document.file_name)        
+            bot.send_message(message.chat.id, 'Лучше посылать изображения в формате jpeg, но я и с этим умею работать.')            
             sendChangedPhoto(message, path, fmt)            
         elif fmt in NOT_ALLOWED_IMAGE_EXTENSIONS:
             log.debug("I don't work with this type of images.")
             bot.send_message(message.chat.id, 'Эти форматы изображений мы, к сожалению не поддерживаем по техническим причинам.')
         else:
+            deletePhoto(path)
             bot.send_message(message.chat.id, 'Либо это не фотография, либо я просто ещё не знаю такого формата.')
     else:
         bot.send_message(message.chat.id, "Вам нужно сначала скинуть кординаты.")   
